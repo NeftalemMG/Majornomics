@@ -6,4 +6,6 @@ We will update and add more to the readme as the project progresses.
 The UI is still not mobile friendly so until we update it, just have your full desktop screen up.
 It will look a little clustered if you guys do half screen. 
 
+And after making changes, please dont push your npm packages to the remote repo. 
+
 **;)**
