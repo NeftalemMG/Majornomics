@@ -1,389 +1,208 @@
-import { useState } from "react";
-import { GlassCard } from "./GlassCard";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import {
-  SketchyMoneyIcon,
-  SketchyBriefcaseIcon,
-  SketchyCapIcon,
-  SketchyClockIcon,
+import { useState, useEffect } from "react";
+import { Button } from "./ui/button";
+import { getAllUniversities, type University } from "../api";
+import { 
+  SketchyCapIcon, 
+  SketchyMoneyIcon, 
+  SketchyLocationIcon,
   SketchyBadgeIcon,
+  SketchyTrendIcon,
 } from "./icons/SketchyIcons";
-import {
-  BarChart,
-  Bar,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { X } from "lucide-react";
+import axios from "axios";
+
+interface ProgramData {
+  programName: string;
+  degreeType: string;
+  university: string;
+  location: string;
+  ranking: number;
+  tuition: number;
+  generalCosts: number;
+  salary: number;
+  gpa: number;
+  duration: string;
+  semesters: number;
+  futureRoles: string[];
+  courses: Array<{ courseName: string; semester: number; credits: number; courseType: string }>;
+  reviews: string[];
+}
 
 export function ProgramComparison() {
-  const [program1, setProgram1] = useState("engineering");
-  const [program2, setProgram2] = useState("business");
+  // State for backend connection
+  const [universities, setUniversities] = useState<University[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'failed'>('connecting');
 
-  const programData: any = {
-    engineering: {
-      name: "Engineering - University of Toronto",
-      avgSalary: 92000,
-      employmentRate: 94,
-      tuition: 15000,
-      duration: "4 years",
-      graduates: 1200,
-      outcomes: [
-        { year: "1", salary: 65000 },
-        { year: "2", salary: 72000 },
-        { year: "3", salary: 78000 },
-        { year: "5", salary: 92000 },
-        { year: "10", salary: 125000 },
-      ],
-      skills: [
-        { subject: "Math", value: 95 },
-        { subject: "Technical", value: 90 },
-        { subject: "Communication", value: 70 },
-        { subject: "Leadership", value: 75 },
-        { subject: "Problem Solving", value: 92 },
-      ],
-    },
-    business: {
-      name: "Business Administration - UBC",
-      avgSalary: 73000,
-      employmentRate: 88,
-      tuition: 12000,
-      duration: "4 years",
-      graduates: 800,
-      outcomes: [
-        { year: "1", salary: 55000 },
-        { year: "2", salary: 62000 },
-        { year: "3", salary: 68000 },
-        { year: "5", salary: 73000 },
-        { year: "10", salary: 105000 },
-      ],
-      skills: [
-        { subject: "Math", value: 75 },
-        { subject: "Technical", value: 65 },
-        { subject: "Communication", value: 90 },
-        { subject: "Leadership", value: 88 },
-        { subject: "Problem Solving", value: 80 },
-      ],
-    },
-    computerscience: {
-      name: "Computer Science - Waterloo",
-      avgSalary: 95000,
-      employmentRate: 96,
-      tuition: 16000,
-      duration: "4 years",
-      graduates: 950,
-      outcomes: [
-        { year: "1", salary: 70000 },
-        { year: "2", salary: 78000 },
-        { year: "3", salary: 85000 },
-        { year: "5", salary: 95000 },
-        { year: "10", salary: 135000 },
-      ],
-      skills: [
-        { subject: "Math", value: 92 },
-        { subject: "Technical", value: 98 },
-        { subject: "Communication", value: 68 },
-        { subject: "Leadership", value: 70 },
-        { subject: "Problem Solving", value: 95 },
-      ],
-    },
-    healthcare: {
-      name: "Healthcare - McGill",
-      avgSalary: 78000,
-      employmentRate: 92,
-      tuition: 18000,
-      duration: "4 years",
-      graduates: 650,
-      outcomes: [
-        { year: "1", salary: 60000 },
-        { year: "2", salary: 66000 },
-        { year: "3", salary: 72000 },
-        { year: "5", salary: 78000 },
-        { year: "10", salary: 98000 },
-      ],
-      skills: [
-        { subject: "Math", value: 70 },
-        { subject: "Technical", value: 75 },
-        { subject: "Communication", value: 92 },
-        { subject: "Leadership", value: 85 },
-        { subject: "Problem Solving", value: 88 },
-      ],
-    },
+  // State for program selection
+  const [selectedPrograms, setSelectedPrograms] = useState<ProgramData[]>([]);
+  const [showSelector, setShowSelector] = useState(false);
+  const [allUis,setAllUnis] = useState();
+
+
+  const getAllUnis = async ()=>{
+    try{
+      const res = await axios.get(" http://localhost:8000/api/unis/all");
+      setLoading(false);
+      console.log(res);
+
+      setUniversities(res.data.data);
+    }catch(err){
+      console.error(err);
+    }
+  }
+
+
+  // Fetch universities from backend on mount
+  useEffect(() => {
+    getAllUnis();
+   
+  }, []);
+
+useEffect(()=>{
+   console.log("unis:",universities);
+},[universities])
+
+  
+  
+
+  const addProgram = (program: ProgramData) => {
+    if (selectedPrograms.length < 3 && !selectedPrograms.find(p => p.programName === program.programName)) {
+      setSelectedPrograms([...selectedPrograms, program]);
+      setShowSelector(false);
+    }
   };
 
-  const data1 = programData[program1];
-  const data2 = programData[program2];
+  const removeProgram = (programName: string) => {
+    setSelectedPrograms(selectedPrograms.filter(p => p.programName !== programName));
+  };
 
-  const combinedOutcomes = data1.outcomes.map((item: any, index: number) => ({
-    year: item.year,
-    [data1.name]: item.salary,
-    [data2.name]: data2.outcomes[index].salary,
-  }));
+  // Loading state
+  if (loading) {
+    return (
+      <div className="container mx-auto px-8 pb-20">
+        <div className="mb-12">
+          <h1 className="text-5xl mb-4 text-black tracking-tight" style={{ fontWeight: 700 }}>
+            Compare Programs
+          </h1>
+        </div>
+        <div className="creative-card rounded-3xl p-16 text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h3 className="text-2xl text-black mb-2 tracking-tight" style={{ fontWeight: 700 }}>
+            Connecting to backend...
+          </h3>
+          <p className="text-slate-600 text-lg">
+            Loading universities from http://localhost:8000
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  const combinedSkills = data1.skills.map((item: any, index: number) => ({
-    subject: item.subject,
-    [data1.name]: item.value,
-    [data2.name]: data2.skills[index].value,
-  }));
+  // Error state
+  if (error) {
+    return (
+      <div className="container mx-auto px-8 pb-20">
+        <div className="mb-12">
+          <h1 className="text-5xl mb-4 text-black tracking-tight" style={{ fontWeight: 700 }}>
+            Compare Programs
+          </h1>
+        </div>
+        <div className="creative-card rounded-3xl p-16 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <X className="w-8 h-8 text-red-600" />
+          </div>
+          <h3 className="text-2xl text-black mb-2 tracking-tight" style={{ fontWeight: 700 }}>
+            Backend Connection Failed
+          </h3>
+          <p className="text-red-600 text-lg mb-4">
+            {error}
+          </p>
+          <div className="text-left max-w-xl mx-auto bg-slate-50 rounded-xl p-4 text-sm text-slate-600">
+            <p className="mb-2"><strong>Checklist:</strong></p>
+            <ul className="space-y-1">
+              <li>✓ Backend server running on port 8000?</li>
+              <li>✓ MongoDB connected?</li>
+              <li>✓ CORS enabled in backend?</li>
+              <li>✓ Seeded database with universities?</li>
+            </ul>
+          </div>
+          <Button
+            onClick={() => window.location.reload()}
+            className="mt-6 bg-blue-500 text-white px-6 py-3 rounded-2xl hover:bg-blue-600"
+            style={{ fontWeight: 600 }}
+          >
+            Retry Connection
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
+  // Success state with connection indicator
   return (
-    <div className="container mx-auto px-8 pb-12">
-      <div className="mb-10">
-        <h2 className="text-4xl mb-2 text-black tracking-tight" style={{ fontWeight: 700 }}>Compare Programs</h2>
-        <p className="text-slate-600 text-lg">Select two programs to see a detailed side-by-side comparison</p>
-      </div>
-
-      {/* Program Selectors with Creative Design */}
-      <div className="grid grid-cols-2 gap-6 mb-12">
-        <div className="creative-card rounded-2xl p-6 border-l-4 border-blue-500">
-          <label className="block mb-3 text-slate-600" style={{ fontWeight: 600 }}>Program 1</label>
-          <Select value={program1} onValueChange={setProgram1}>
-            <SelectTrigger className="bg-white border-slate-200 rounded-xl text-black" style={{ fontWeight: 500 }}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200">
-              <SelectItem value="engineering">Engineering - University of Toronto</SelectItem>
-              <SelectItem value="business">Business Administration - UBC</SelectItem>
-              <SelectItem value="computerscience">Computer Science - Waterloo</SelectItem>
-              <SelectItem value="healthcare">Healthcare - McGill</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="creative-card rounded-2xl p-6 border-l-4 border-black">
-          <label className="block mb-3 text-slate-600" style={{ fontWeight: 600 }}>Program 2</label>
-          <Select value={program2} onValueChange={setProgram2}>
-            <SelectTrigger className="bg-white border-slate-200 rounded-xl text-black" style={{ fontWeight: 500 }}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200">
-              <SelectItem value="engineering">Engineering - University of Toronto</SelectItem>
-              <SelectItem value="business">Business Administration - UBC</SelectItem>
-              <SelectItem value="computerscience">Computer Science - Waterloo</SelectItem>
-              <SelectItem value="healthcare">Healthcare - McGill</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Quick Stats Comparison with Asymmetric Cards */}
-      <div className="grid grid-cols-2 gap-8 mb-12">
-        {/* Program 1 */}
-        <div className="space-y-4">
-          <div className="creative-card rounded-3xl p-6 border-l-4 border-blue-500">
-            <h3 className="mb-6 text-black text-lg tracking-tight" style={{ fontWeight: 700 }}>{data1.name}</h3>
-            <div className="space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyMoneyIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 600 }}>Average Salary</div>
-                  <div className="text-xl text-black tracking-tight" style={{ fontWeight: 700 }}>${data1.avgSalary.toLocaleString()}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-400 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyBriefcaseIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 600 }}>Employment Rate</div>
-                  <div className="text-xl text-black tracking-tight" style={{ fontWeight: 700 }}>{data1.employmentRate}%</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-300 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyCapIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 600 }}>Annual Tuition</div>
-                  <div className="text-xl text-black tracking-tight" style={{ fontWeight: 700 }}>${data1.tuition.toLocaleString()}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-slate-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyClockIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 600 }}>Program Duration</div>
-                  <div className="text-xl text-black tracking-tight" style={{ fontWeight: 700 }}>{data1.duration}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyBadgeIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 600 }}>Annual Graduates</div>
-                  <div className="text-xl text-black tracking-tight" style={{ fontWeight: 700 }}>{data1.graduates.toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
+    <div className="container mx-auto px-8 pb-20">
+      {/* Header with connection status */}
+      <div className="mb-12">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-5xl text-black tracking-tight" style={{ fontWeight: 700 }}>
+            Compare Programs
+          </h1>
+          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-full text-sm" style={{ fontWeight: 600 }}>
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            Backend Connected ({universities.length} universities)
           </div>
         </div>
-
-        {/* Program 2 */}
-        <div className="space-y-4">
-          <div className="creative-card rounded-3xl p-6 border-l-4 border-black">
-            <h3 className="mb-6 text-black text-lg tracking-tight" style={{ fontWeight: 700 }}>{data2.name}</h3>
-            <div className="space-y-5">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyMoneyIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 600 }}>Average Salary</div>
-                  <div className="text-xl text-black tracking-tight" style={{ fontWeight: 700 }}>${data2.avgSalary.toLocaleString()}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-slate-700 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyBriefcaseIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 600 }}>Employment Rate</div>
-                  <div className="text-xl text-black tracking-tight" style={{ fontWeight: 700 }}>{data2.employmentRate}%</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-slate-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyCapIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 600 }}>Annual Tuition</div>
-                  <div className="text-xl text-black tracking-tight" style={{ fontWeight: 700 }}>${data2.tuition.toLocaleString()}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-slate-400 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyClockIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 600 }}>Program Duration</div>
-                  <div className="text-xl text-black tracking-tight" style={{ fontWeight: 700 }}>{data2.duration}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyBadgeIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 600 }}>Annual Graduates</div>
-                  <div className="text-xl text-black tracking-tight" style={{ fontWeight: 700 }}>{data2.graduates.toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <p className="text-xl text-slate-600 max-w-2xl">
+          Select up to 3 programs to compare side by side.
+        </p>
       </div>
 
-      {/* Charts with Creative Layout */}
-      <div className="grid grid-cols-2 gap-8 mb-8">
-        {/* Salary Progression */}
-        <div className="creative-card rounded-3xl p-8">
-          <h3 className="mb-6 text-black tracking-tight" style={{ fontWeight: 700 }}>Salary Progression</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={combinedOutcomes}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="year" stroke="#64748b" label={{ value: 'Years After Graduation', position: 'insideBottom', offset: -5, fill: '#64748b' }} style={{ fontSize: '13px', fontWeight: 500 }} />
-              <YAxis stroke="#64748b" style={{ fontSize: '13px', fontWeight: 500 }} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#ffffff', 
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  color: '#0a0a0a'
-                }} 
-              />
-              <Legend wrapperStyle={{ color: '#0a0a0a', fontWeight: 500 }} />
-              <Bar dataKey={data1.name} fill="#60a5fa" radius={[12, 12, 0, 0]} />
-              <Bar dataKey={data2.name} fill="#0a0a0a" radius={[12, 12, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Add Program Button
+      {selectedPrograms.length < 3 && (
+        <div className="mb-12">
+          <Button
+            onClick={() => setShowSelector(!showSelector)}
+            className="bg-blue-500 text-white px-6 py-4 rounded-2xl hover:bg-blue-600 transition-all"
+            style={{ fontWeight: 600 }}
+          >
+            {showSelector ? "Close" : "Add Program to Compare"}
+          </Button>
         </div>
+      )} */}
 
-        {/* Skills Comparison */}
-        <div className="creative-card rounded-3xl p-8">
-          <h3 className="mb-6 text-black tracking-tight" style={{ fontWeight: 700 }}>Skills Profile</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <RadarChart data={combinedSkills}>
-              <PolarGrid stroke="#e2e8f0" />
-              <PolarAngleAxis dataKey="subject" stroke="#64748b" style={{ fontSize: '12px', fontWeight: 500 }} />
-              <PolarRadiusAxis stroke="#64748b" style={{ fontSize: '11px', fontWeight: 500 }} />
-              <Radar name={data1.name} dataKey={data1.name} stroke="#60a5fa" fill="#60a5fa" fillOpacity={0.5} />
-              <Radar name={data2.name} dataKey={data2.name} stroke="#0a0a0a" fill="#0a0a0a" fillOpacity={0.3} />
-              <Legend wrapperStyle={{ color: '#0a0a0a', fontWeight: 500 }} />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* ROI Comparison */}
-      <div className="creative-card rounded-3xl p-8">
-        <h3 className="mb-6 text-black tracking-tight" style={{ fontWeight: 700 }}>Return on Investment (ROI) Analysis</h3>
-        <div className="grid grid-cols-2 gap-10">
-          <div className="relative pl-6">
-            <div className="absolute left-0 top-0 w-1 h-full bg-blue-500 rounded-full"></div>
-            <h4 className="mb-4 text-black" style={{ fontWeight: 700 }}>{data1.name}</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-slate-600" style={{ fontWeight: 500 }}>Total 4-Year Tuition:</span>
-                <span className="text-black" style={{ fontWeight: 700 }}>${(data1.tuition * 4).toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600" style={{ fontWeight: 500 }}>5-Year Salary:</span>
-                <span className="text-black" style={{ fontWeight: 700 }}>${data1.avgSalary.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-slate-200">
-                <span className="text-slate-600" style={{ fontWeight: 600 }}>ROI Ratio:</span>
-                <span className="text-blue-500 text-lg" style={{ fontWeight: 700 }}>{(data1.avgSalary / (data1.tuition * 4)).toFixed(2)}x</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative pl-6">
-            <div className="absolute left-0 top-0 w-1 h-full bg-black rounded-full"></div>
-            <h4 className="mb-4 text-black" style={{ fontWeight: 700 }}>{data2.name}</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-slate-600" style={{ fontWeight: 500 }}>Total 4-Year Tuition:</span>
-                <span className="text-black" style={{ fontWeight: 700 }}>${(data2.tuition * 4).toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600" style={{ fontWeight: 500 }}>5-Year Salary:</span>
-                <span className="text-black" style={{ fontWeight: 700 }}>${data2.avgSalary.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-slate-200">
-                <span className="text-slate-600" style={{ fontWeight: 600 }}>ROI Ratio:</span>
-                <span className="text-black text-lg" style={{ fontWeight: 700 }}>{(data2.avgSalary / (data2.tuition * 4)).toFixed(2)}x</span>
-              </div>
-            </div>
+      {/* Program Selector */}
+        <div className="mb-12 creative-card rounded-3xl p-8">
+          <h3 className="text-xl text-black mb-6 tracking-tight" style={{ fontWeight: 700 }}>
+            Select a Program
+          </h3>
+          <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+            {universities.map((uni,ind) => (
+              <button
+                key={idx}
+                onClick={() => addProgram(program)}
+                // disabled={selectedPrograms.find(p => p.programName === program.programName) !== undefined}
+                className="creative-card-accent rounded-2xl p-6 text-left hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="text-lg text-black tracking-tight" style={{ fontWeight: 700 }}>
+                    {program.programName}
+                  </h4>
+                  <div className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs" style={{ fontWeight: 600 }}>
+                    {program.degreeType}
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 mb-3">{program.university}</p>
+                <div className="flex items-center gap-4 text-sm text-slate-500">
+                  <span>${program.tuition}</span>
+                  <span>•</span>
+                  <span>${program.salary} avg</span>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
-      </div>
     </div>
-  );
+  )
 }

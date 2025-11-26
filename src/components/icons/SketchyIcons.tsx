@@ -1,5 +1,3 @@
-// Hand-drawn, sketchy style icons for Majornomics
-
 export function SketchyTrendIcon({ className = "w-6 h-6" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -174,16 +172,17 @@ export function SketchyGridIcon({ className = "w-6 h-6" }: { className?: string 
 export function MajornomicsLogoIcon({ className = "w-6 h-6" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Sketchy book/notebook */}
-      <rect x="5" y="3" width="14" height="18" rx="1.5" stroke="currentColor" strokeWidth="2.5" fill="none"/>
-      <rect x="5.2" y="3.2" width="13.8" height="17.8" rx="1.5" stroke="currentColor" strokeWidth="2.5" fill="none" strokeOpacity="0.2"/>
-      {/* Hand-drawn lines representing data/text */}
-      <path d="M8 8H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <path d="M8 11.5H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <path d="M8 15H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      {/* Sketchy chart overlay */}
-      <path d="M10 13L11.5 11L13 12.5L14.5 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="14.5" cy="10" r="1" fill="currentColor"/>
+      {/* Graduation cap base */}
+      <path d="M2 10L12 5L22 10L12 15L2 10Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      {/* Rising trend line integrated into design */}
+      <path d="M6 12L8 10.5L10 11.5L12 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Dollar sign */}
+      <circle cx="16" cy="13" r="3.5" stroke="currentColor" strokeWidth="2.2" fill="none"/>
+      <path d="M16 11.5V14.5M15 12.5C15 12 15.4 11.5 16 11.5C16.6 11.5 17 12 17 12.5C17 13 16.6 13.5 16 13.5C15.4 13.5 15 14 15 14.5C15 15 15.4 15.5 16 15.5C16.6 15.5 17 15 17 14.5" 
+        stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      {/* Small accent dots */}
+      <circle cx="12" cy="9" r="1" fill="currentColor"/>
+      <circle cx="7" cy="11" r="0.8" fill="currentColor"/>
     </svg>
   );
 }

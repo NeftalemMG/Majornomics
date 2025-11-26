@@ -1,318 +1,326 @@
 import { useState } from "react";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { dummyUniversities } from "../dummyData";
+import { 
+  SketchyCapIcon, 
+  SketchyMoneyIcon, 
+  SketchyBadgeIcon,
+  SketchyLocationIcon,
+  SketchyTrendIcon,
+} from "./icons/SketchyIcons";
 import { Label } from "./ui/label";
 import { Slider } from "./ui/slider";
-import { GlassCard } from "./GlassCard";
-import {
-  SketchyMoneyIcon,
-  SketchyTrendIcon,
-  SketchyPeopleIcon,
-  SketchyBadgeIcon,
-  SketchyStarIcon,
-  SketchyArrowIcon,
-} from "./icons/SketchyIcons";
+
+interface RecommendedProgram {
+  programName: string;
+  degreeType: string;
+  university: string;
+  location: string;
+  ranking: number;
+  tuition: number;
+  generalCosts: number;
+  salary: number;
+  gpa: number;
+  duration: string;
+  semesters: number;
+  score: number;
+  futureRoles: string[];
+  courses: Array<{ courseName: string; semester: number; credits: number; courseType: string }>;
+  reviews: string[];
+}
 
 export function Recommendations() {
-  const [affordability, setAffordability] = useState([75]);
-  const [employment, setEmployment] = useState([85]);
-  const [skillDemand, setSkillDemand] = useState([70]);
+  const [affordability, setAffordability] = useState([50]);
+  const [salary, setSalary] = useState([50]);
+  const [prestige, setPrestige] = useState([50]);
 
-  const recommendations = [
-    {
-      name: "Computer Science",
-      university: "University of Waterloo",
-      matchScore: 96,
-      salary: "$95,000",
-      employmentRate: "96%",
-      tuition: "$16,000/year",
-      demandTrend: "+18% YoY",
-      tags: ["High Demand", "Top ROI", "STEM"],
-      highlights: [
-        "Highest employment rate in tech sector",
-        "Strong co-op program with industry connections",
-        "Competitive starting salaries",
-      ],
-    },
-    {
-      name: "Engineering",
-      university: "University of Toronto",
-      matchScore: 94,
-      salary: "$92,000",
-      employmentRate: "94%",
-      tuition: "$15,000/year",
-      demandTrend: "+15% YoY",
-      tags: ["STEM", "High Salary", "Versatile"],
-      highlights: [
-        "Diverse specialization options",
-        "Strong industry partnerships",
-        "Excellent long-term career growth",
-      ],
-    },
-    {
-      name: "Business Administration",
-      university: "UBC Sauder",
-      matchScore: 88,
-      salary: "$73,000",
-      employmentRate: "88%",
-      tuition: "$12,000/year",
-      demandTrend: "+12% YoY",
-      tags: ["Leadership", "Networking", "Versatile"],
-      highlights: [
-        "Strong alumni network",
-        "International exchange opportunities",
-        "Lower tuition costs",
-      ],
-    },
-    {
-      name: "Healthcare Administration",
-      university: "McGill University",
-      matchScore: 85,
-      salary: "$78,000",
-      employmentRate: "92%",
-      tuition: "$18,000/year",
-      demandTrend: "+20% YoY",
-      tags: ["Growing Field", "Stable", "Impactful"],
-      highlights: [
-        "Rapidly growing healthcare sector",
-        "Job security and stability",
-        "Meaningful societal impact",
-      ],
-    },
-  ];
+  // Generate all programs first
+  const allPrograms = dummyUniversities.flatMap(uni =>
+    uni.programsOffered.map(program => ({
+      programName: program.programName,
+      degreeType: program.degreeType,
+      university: uni.universityName,
+      location: uni.location,
+      ranking: uni.qsWorldRanking,
+      tuition: program.tuition,
+      generalCosts: program.generalCosts,
+      salary: program.averageSalaryExpectations[0]?.averageSalary || 0,
+      gpa: program.admissionRequirements[0]?.gpa || 0,
+      duration: program.programDuration,
+      semesters: program.numberOfSemesters,
+      futureRoles: program.futureRoles,
+      courses: program.courses,
+      reviews: program.redditReviews,
+    }))
+  );
 
-  const sortedRecommendations = [...recommendations].sort((a, b) => {
-    const scoreA =
-      (affordability[0] / 100) * (100 - parseInt(a.tuition.replace(/\D/g, "")) / 200) +
-      (employment[0] / 100) * a.matchScore +
-      (skillDemand[0] / 100) * parseInt(a.demandTrend.replace(/\D/g, ""));
-    const scoreB =
-      (affordability[0] / 100) * (100 - parseInt(b.tuition.replace(/\D/g, "")) / 200) +
-      (employment[0] / 100) * b.matchScore +
-      (skillDemand[0] / 100) * parseInt(b.demandTrend.replace(/\D/g, ""));
-    return scoreB - scoreA;
+  // Find min/max values for normalization
+  const tuitions = allPrograms.map(p => p.tuition);
+  const salaries = allPrograms.map(p => p.salary);
+  const rankings = allPrograms.map(p => p.ranking);
+
+  const minTuition = Math.min(...tuitions);
+  const maxTuition = Math.max(...tuitions);
+  const minSalary = Math.min(...salaries);
+  const maxSalary = Math.max(...salaries);
+  const minRanking = Math.min(...rankings);
+  const maxRanking = Math.max(...rankings);
+
+  // Calculate scores with proper normalization (0-100%)
+  const recommendedPrograms: RecommendedProgram[] = allPrograms.map(program => {
+    // Normalize affordability (lower tuition = better, 0-1 scale)
+    const affordabilityScore = maxTuition !== minTuition
+      ? (maxTuition - program.tuition) / (maxTuition - minTuition)
+      : 1;
+
+    // Normalize salary (higher salary = better, 0-1 scale)
+    const salaryScore = maxSalary !== minSalary
+      ? (program.salary - minSalary) / (maxSalary - minSalary)
+      : 1;
+
+    // Normalize prestige (lower ranking number = better, 0-1 scale)
+    const prestigeScore = maxRanking !== minRanking
+      ? (maxRanking - program.ranking) / (maxRanking - minRanking)
+      : 1;
+
+    // Get slider weights (0-100, convert to 0-1)
+    const affordabilityWeight = affordability[0] / 100;
+    const salaryWeight = salary[0] / 100;
+    const prestigeWeight = prestige[0] / 100;
+
+    // Calculate weighted average score
+    const totalWeight = affordabilityWeight + salaryWeight + prestigeWeight;
+    const weightedScore = totalWeight > 0
+      ? ((affordabilityScore * affordabilityWeight) +
+         (salaryScore * salaryWeight) +
+         (prestigeScore * prestigeWeight)) / totalWeight
+      : 0;
+
+    // Convert to percentage (0-100)
+    const finalScore = weightedScore * 100;
+
+    return {
+      ...program,
+      score: finalScore,
+    };
   });
 
+  // Sort by score (highest first) and take top 4
+  const recommendations = [...recommendedPrograms]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4);
+
   return (
-    <div className="container mx-auto px-8 pb-12">
-      <div className="mb-10">
-        <h2 className="text-4xl mb-2 text-black tracking-tight" style={{ fontWeight: 700 }}>Personalized Recommendations</h2>
-        <p className="text-slate-600 text-lg">Adjust your preferences to find programs that match your goals</p>
+    <div className="container mx-auto px-8 pb-20">
+      {/* Header */}
+      <div className="mb-12">
+        <h1 className="text-5xl mb-4 text-black tracking-tight" style={{ fontWeight: 700 }}>
+          Recommended Programs
+        </h1>
+        <p className="text-xl text-slate-600 max-w-2xl">
+          Adjust your preferences to get personalized recommendations.
+        </p>
       </div>
 
-      {/* Preference Sliders with Creative Cards */}
-      <div className="creative-card rounded-3xl p-10 mb-12">
-        <h3 className="mb-8 text-black text-xl tracking-tight" style={{ fontWeight: 700 }}>Your Preferences</h3>
-        <div className="grid grid-cols-3 gap-12">
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <Label className="text-black" style={{ fontWeight: 600 }}>Affordability</Label>
-              <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-sm">
-                <SketchyMoneyIcon className="w-5 h-5 text-white" />
-              </div>
+      {/* Preference Sliders */}
+      <div className="creative-card rounded-3xl p-8 mb-12">
+        <h2 className="text-2xl mb-8 text-black tracking-tight" style={{ fontWeight: 700 }}>
+          Your Preferences
+        </h2>
+        
+        <div className="grid grid-cols-3 gap-8">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg text-black" style={{ fontWeight: 600 }}>
+                Affordability
+              </Label>
+              <span className="text-xl text-blue-500" style={{ fontWeight: 700 }}>
+                {affordability}%
+              </span>
             </div>
-            <Slider 
-              value={affordability} 
+            <Slider
+              value={affordability}
               onValueChange={setAffordability}
               max={100}
               step={1}
-              className="mb-3"
+              className="w-full"
             />
-            <div className="flex justify-between text-xs text-slate-500" style={{ fontWeight: 500 }}>
-              <span>Less Important</span>
-              <span className="text-blue-500" style={{ fontWeight: 700 }}>{affordability[0]}%</span>
-            </div>
+            <p className="text-sm text-slate-500">Prioritize lower tuition costs</p>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <Label className="text-black" style={{ fontWeight: 600 }}>Employment Prospects</Label>
-              <div className="w-10 h-10 bg-blue-400 rounded-xl flex items-center justify-center shadow-sm">
-                <SketchyTrendIcon className="w-5 h-5 text-white" />
-              </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg text-black" style={{ fontWeight: 600 }}>
+                Salary Potential
+              </Label>
+              <span className="text-xl text-blue-500" style={{ fontWeight: 700 }}>
+                {salary}%
+              </span>
             </div>
-            <Slider 
-              value={employment} 
-              onValueChange={setEmployment}
+            <Slider
+              value={salary}
+              onValueChange={setSalary}
               max={100}
               step={1}
-              className="mb-3"
+              className="w-full"
             />
-            <div className="flex justify-between text-xs text-slate-500" style={{ fontWeight: 500 }}>
-              <span>Less Important</span>
-              <span className="text-blue-500" style={{ fontWeight: 700 }}>{employment[0]}%</span>
-            </div>
+            <p className="text-sm text-slate-500">Prioritize higher average salaries</p>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <Label className="text-black" style={{ fontWeight: 600 }}>Market Demand</Label>
-              <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center shadow-sm">
-                <SketchyPeopleIcon className="w-5 h-5 text-white" />
-              </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-lg text-black" style={{ fontWeight: 600 }}>
+                University Prestige
+              </Label>
+              <span className="text-xl text-blue-500" style={{ fontWeight: 700 }}>
+                {prestige}%
+              </span>
             </div>
-            <Slider 
-              value={skillDemand} 
-              onValueChange={setSkillDemand}
+            <Slider
+              value={prestige}
+              onValueChange={setPrestige}
               max={100}
               step={1}
-              className="mb-3"
+              className="w-full"
             />
-            <div className="flex justify-between text-xs text-slate-500" style={{ fontWeight: 500 }}>
-              <span>Less Important</span>
-              <span className="text-black" style={{ fontWeight: 700 }}>{skillDemand[0]}%</span>
-            </div>
+            <p className="text-sm text-slate-500">Prioritize better QS rankings</p>
           </div>
-        </div>
-
-        <div className="mt-8 flex justify-end">
-          <Button className="bg-blue-500 text-white rounded-2xl hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-500/20 transition-all px-8 py-6" style={{ fontWeight: 600 }}>
-            Update Recommendations
-          </Button>
         </div>
       </div>
 
-      {/* Recommended Programs with Creative Layout */}
-      <div className="mb-8">
-        <h3 className="text-black text-xl mb-2 tracking-tight" style={{ fontWeight: 700 }}>Top Matches for You</h3>
-        <p className="text-slate-600">Based on your preferences, here are our recommendations</p>
-      </div>
-
+      {/* Recommendations */}
       <div className="grid grid-cols-2 gap-8">
-        {sortedRecommendations.map((program, index) => (
-          <div
-            key={index}
-            className="creative-card rounded-3xl p-8 group cursor-pointer hover:shadow-2xl transition-all duration-300"
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between mb-5">
-              <div>
-                <h3 className="text-black mb-1 tracking-tight" style={{ fontWeight: 700 }}>{program.name}</h3>
-                <p className="text-slate-600 text-sm">{program.university}</p>
-              </div>
-              <div className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-sm">
-                <SketchyStarIcon className="w-4 h-4" />
-                <span className="text-sm" style={{ fontWeight: 600 }}>{program.matchScore}% Match</span>
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {program.tags.map((tag, tagIndex) => (
-                <Badge 
-                  key={tagIndex} 
-                  variant="secondary" 
-                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-full" 
-                  style={{ fontWeight: 500 }}
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-
-            {/* Stats Grid with Creative Layout */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyMoneyIcon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 500 }}>Avg Salary</div>
-                  <div className="text-sm text-black" style={{ fontWeight: 700 }}>{program.salary}</div>
+        {recommendations.map((program, idx) => (
+          <div key={idx} className="creative-card rounded-3xl p-8 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-start justify-between mb-6 pb-4 border-b border-slate-100">
+              <div className="flex-1">
+                <h3 className="text-2xl text-black mb-2 tracking-tight" style={{ fontWeight: 700 }}>
+                  {program.programName}
+                </h3>
+                <p className="text-lg text-slate-600 mb-2">{program.university}</p>
+                <div className="flex items-center gap-3">
+                  <div className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm" style={{ fontWeight: 600 }}>
+                    {program.degreeType}
+                  </div>
+                  <span className="text-sm text-slate-500">{program.duration}</span>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyTrendIcon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 500 }}>Employment</div>
-                  <div className="text-sm text-black" style={{ fontWeight: 700 }}>{program.employmentRate}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-slate-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyBadgeIcon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 500 }}>Tuition</div>
-                  <div className="text-sm text-black" style={{ fontWeight: 700 }}>{program.tuition}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <SketchyPeopleIcon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500" style={{ fontWeight: 500 }}>Demand Trend</div>
-                  <div className="text-sm text-green-600" style={{ fontWeight: 700 }}>{program.demandTrend}</div>
-                </div>
+              <div className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-full">
+                <span className="text-sm" style={{ fontWeight: 700 }}>
+                  {Math.round(program.score)}% Match
+                </span>
               </div>
             </div>
 
-            {/* Highlights */}
-            <div className="border-t border-slate-200 pt-5 mb-5">
-              <div className="text-xs text-slate-500 mb-3" style={{ fontWeight: 600 }}>Why this program?</div>
-              <ul className="space-y-2">
-                {program.highlights.map((highlight, hIndex) => (
-                  <li key={hIndex} className="text-sm text-slate-600 flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />
-                    {highlight}
-                  </li>
+            {/* Key Metrics */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <SketchyLocationIcon className="w-4 h-4 text-slate-400" />
+                  <p className="text-xs text-slate-500">Location</p>
+                </div>
+                <p className="text-sm text-black" style={{ fontWeight: 600 }}>
+                  {program.location}
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <SketchyBadgeIcon className="w-4 h-4 text-slate-400" />
+                  <p className="text-xs text-slate-500">QS Ranking</p>
+                </div>
+                <p className="text-sm text-black" style={{ fontWeight: 600 }}>
+                  #{program.ranking}
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <SketchyMoneyIcon className="w-4 h-4 text-slate-400" />
+                  <p className="text-xs text-slate-500">Tuition</p>
+                </div>
+                <p className="text-sm text-black" style={{ fontWeight: 700 }}>
+                  ${program.tuition.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <SketchyCapIcon className="w-4 h-4 text-slate-400" />
+                  <p className="text-xs text-slate-500">Avg Salary</p>
+                </div>
+                <p className="text-sm text-black" style={{ fontWeight: 700 }}>
+                  ${program.salary.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <SketchyBadgeIcon className="w-4 h-4 text-slate-400" />
+                  <p className="text-xs text-slate-500">Min GPA</p>
+                </div>
+                <p className="text-sm text-black" style={{ fontWeight: 700 }}>
+                  {program.gpa.toFixed(1)}
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <SketchyTrendIcon className="w-4 h-4 text-slate-400" />
+                  <p className="text-xs text-slate-500">Semesters</p>
+                </div>
+                <p className="text-sm text-black" style={{ fontWeight: 700 }}>
+                  {program.semesters}
+                </p>
+              </div>
+            </div>
+
+            {/* Career Paths */}
+            <div className="mb-4">
+              <h5 className="text-sm text-slate-500 mb-2" style={{ fontWeight: 600 }}>Career Paths</h5>
+              <div className="flex flex-wrap gap-2">
+                {program.futureRoles.map((role, rIdx) => (
+                  <span key={rIdx} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs">
+                    {role}
+                  </span>
                 ))}
-              </ul>
+              </div>
             </div>
 
-            {/* Action Button */}
-            <Button 
-              variant="outline" 
-              className="w-full border-2 border-slate-200 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all group text-black rounded-2xl py-6"
-              style={{ fontWeight: 600 }}
-            >
-              View Full Details
-              <SketchyArrowIcon className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            {/* Courses */}
+            <div className="mb-4">
+              <h5 className="text-sm text-slate-500 mb-2" style={{ fontWeight: 600 }}>Sample Courses</h5>
+              <div className="space-y-1.5">
+                {program.courses.slice(0, 3).map((course, cIdx) => (
+                  <div key={cIdx} className="text-sm text-slate-600 leading-relaxed">
+                    • {course.courseName} ({course.courseType})
+                  </div>
+                ))}
+                {program.courses.length > 3 && (
+                  <p className="text-xs text-slate-400">
+                    +{program.courses.length - 3} more courses
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Reviews */}
+            <div>
+              <h5 className="text-sm text-slate-500 mb-2" style={{ fontWeight: 600 }}>Student Reviews</h5>
+              <div className="space-y-2">
+                {program.reviews.map((review, revIdx) => (
+                  <div key={revIdx} className="p-2 bg-slate-50 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <SketchyTrendIcon className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-slate-600 italic leading-relaxed">
+                        "{review}"
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ))}
-      </div>
-
-      {/* Additional Insights with Creative Cards */}
-      <div className="creative-card rounded-3xl p-10 mt-12">
-        <h3 className="mb-8 text-black text-xl tracking-tight" style={{ fontWeight: 700 }}>Why These Recommendations?</h3>
-        <div className="grid grid-cols-3 gap-10">
-          <div>
-            <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center mb-5 shadow-sm">
-              <SketchyTrendIcon className="w-6 h-6 text-white" />
-            </div>
-            <h4 className="mb-3 text-black" style={{ fontWeight: 700 }}>Strong Market Alignment</h4>
-            <p className="text-slate-600 leading-relaxed">
-              These programs align with current and projected job market trends, ensuring relevance after graduation.
-            </p>
-          </div>
-
-          <div>
-            <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center mb-5 shadow-sm">
-              <SketchyMoneyIcon className="w-6 h-6 text-white" />
-            </div>
-            <h4 className="mb-3 text-black" style={{ fontWeight: 700 }}>Optimal ROI</h4>
-            <p className="text-slate-600 leading-relaxed">
-              Based on tuition costs vs. expected earnings, these programs offer excellent return on investment.
-            </p>
-          </div>
-
-          <div>
-            <div className="w-12 h-12 bg-blue-400 rounded-2xl flex items-center justify-center mb-5 shadow-sm">
-              <SketchyBadgeIcon className="w-6 h-6 text-white" />
-            </div>
-            <h4 className="mb-3 text-black" style={{ fontWeight: 700 }}>Quality Institutions</h4>
-            <p className="text-slate-600 leading-relaxed">
-              These universities have strong track records for graduate outcomes and employer satisfaction.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );
