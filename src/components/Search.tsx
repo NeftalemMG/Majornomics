@@ -16,7 +16,7 @@ export function Search() {
 
   const getAllCourses = async () => {
     try {
-      const allUnis = await axios.get("http://localhost:5000/api/unis/all");
+      const allUnis = await axios.get<getAllUnisResponse>("http://localhost:5000/api/unis/all");
       setFilteredResults(allUnis.data.data);
     } catch (error) {
       console.error("Error fetching courses:", error);
