@@ -3,7 +3,6 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { HomePage } from "./components/HomePage";
 import { Search } from "./components/Search";
-import { ProgramComparison } from "./components/ProgramComparison";
 import { Recommendations } from "./components/Recommendations";
 
 export default function App() {
@@ -15,8 +14,6 @@ export default function App() {
         return <HomePage onNavigate={setCurrentPage} />;
       case "search":
         return <Search />;
-      case "compare":
-        return <ProgramComparison />;
       case "recommendations":
         return <Recommendations />;
       default:

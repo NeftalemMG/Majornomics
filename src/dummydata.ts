@@ -230,3 +230,12 @@ export const dummyUniversities: University[] = [
     ]
   }
 ];
+
+
+
+export interface getAllUnisResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: University[];
+}
