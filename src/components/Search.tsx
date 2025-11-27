@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Input } from "./ui/input";
 import { getAllUnisResponse, type University } from "../dummyData";
 import {
@@ -8,24 +8,52 @@ import {
   SketchyBadgeIcon,
   SketchyTrendIcon,
 } from "./icons/SketchyIcons";
-import axios from "axios";
+import axios, { all } from "axios";
 
 export function Search() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState<University[]>([]);
+  const [allResults, setAllResults] = useState<University[]>([]);
 
   const getAllCourses = async () => {
     try {
-      const allUnis = await axios.get<getAllUnisResponse>("http://localhost:5000/api/unis/all");
+      const allUnis = await axios.get<getAllUnisResponse>(
+        "http://localhost:5000/api/unis/all"
+      );
       setFilteredResults(allUnis.data.data);
+      setAllResults(allUnis.data.data);
     } catch (error) {
       console.error("Error fetching courses:", error);
+    }
+  };
+
+  const fetchSearchedResults = async (query: string) => {
+    try {
+      const response = await axios.post<getAllUnisResponse>(
+        "http://localhost:5000/api/unis/search",
+        {
+          query: query,
+        }
+      );
+      console.log(response.data.data);
+      setFilteredResults(response.data.data);
+    } catch (error) {
+      console.error("Error fetching searched results:", error);
     }
   };
 
   useEffect(() => {
     getAllCourses();
   }, []);
+  
+
+  useEffect(() => {
+    if (searchQuery.length >=4) {
+      fetchSearchedResults(searchQuery);
+    }else{
+      setFilteredResults(allResults);
+    }
+  }, [searchQuery]);
 
   return (
     <div className="container mx-auto px-8 pb-20">
@@ -43,7 +71,7 @@ export function Search() {
       </div>
 
       {/* Search Bar */}
-      <div className="mb-16 p-5" style={{padding:10}}>
+      <div className="mb-16 p-5" style={{ padding: 10 }}>
         <div className="relative max-w-2xl">
           <Input
             type="text"
@@ -55,7 +83,7 @@ export function Search() {
         </div>
       </div>
 
-      {/* Results */}
+
       {filteredResults.length === 0 ? (
         <div className="creative-card rounded-3xl p-16 text-center">
           <h3
