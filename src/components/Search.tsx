@@ -1,6 +1,6 @@
 import { useState, useEffect, use } from "react";
 import { Input } from "./ui/input";
-import { getAllUnisResponse, type University } from "../dummyData";
+import { getAllUnisResponse, type University } from "../dummydata";
 import {
   SketchyCapIcon,
   SketchyMoneyIcon,
@@ -167,7 +167,7 @@ export function Search() {
                             className="text-base text-black"
                             style={{ fontWeight: 600 }}
                           >
-                            ${program.tuition.toLocaleString()}
+                            ${program.tuition}
                           </p>
                         </div>
 
@@ -183,7 +183,7 @@ export function Search() {
                             style={{ fontWeight: 600 }}
                           >
                             $
-                            {program.averageSalaryExpectations[0]?.averageSalary.toLocaleString()}
+                            {program.averageSalaryExpectations[0]?.averageSalary}
                           </p>
                         </div>
 
@@ -198,7 +198,7 @@ export function Search() {
                             className="text-base text-black"
                             style={{ fontWeight: 600 }}
                           >
-                            {program.admissionRequirements[0]?.gpa.toFixed(1)}
+                            {program.admissionRequirements[0]?.gpa}
                           </p>
                         </div>
                       </div>
