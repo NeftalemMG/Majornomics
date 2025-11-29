@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Header } from "./components/Header";
+import { Footer } from "./components/Footer";
 import { HomePage } from "./components/HomePage";
-import { Dashboard } from "./components/Dashboard";
-import { ProgramComparison } from "./components/ProgramComparison";
+import { Search } from "./components/Search";
 import { Recommendations } from "./components/Recommendations";
 
 export default function App() {
@@ -12,10 +12,8 @@ export default function App() {
     switch (currentPage) {
       case "home":
         return <HomePage onNavigate={setCurrentPage} />;
-      case "dashboard":
-        return <Dashboard />;
-      case "compare":
-        return <ProgramComparison />;
+      case "search":
+        return <Search />;
       case "recommendations":
         return <Recommendations />;
       default:
@@ -24,12 +22,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white flex flex-col">
       <Header
         currentPage={currentPage}
         onNavigate={setCurrentPage}
       />
-      {renderPage()}
+      <main className="flex-1">
+        {renderPage()}
+      </main>
+      <Footer onNavigate={setCurrentPage} />
     </div>
   );
 }

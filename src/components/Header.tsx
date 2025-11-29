@@ -8,8 +8,7 @@ interface HeaderProps {
 export function Header({ currentPage, onNavigate }: HeaderProps) {
   const navItems = [
     { id: 'home', label: 'Home' },
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'compare', label: 'Compare' },
+    { id: 'search', label: 'Search' },
     { id: 'recommendations', label: 'Recommendations' },
   ];
 

@@ -16,25 +16,25 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const stats = [
     {
       icon: SketchyPeopleIcon,
-      value: '2.4M+',
-      label: 'Students Analyzed',
+      value: '200',
+      label: 'Programs Analyzed',
       delay: '0ms',
     },
     {
       icon: SketchyTrendIcon,
       value: '98%',
-      label: 'Accuracy Rate',
+      label: 'Accuracy Rate - This i might also remove',
       delay: '100ms',
     },
     {
       icon: SketchyMoneyIcon,
       value: '$75K',
-      label: 'Avg Graduate Salary',
+      label: 'Avg Graduate Salary - Not sure about the data here we might have to change it after we pool in the actual data',
       delay: '200ms',
     },
     {
       icon: SketchyLocationIcon,
-      value: '350+',
+      value: '20',
       label: 'Institutions Tracked',
       delay: '300ms',
     },
@@ -60,7 +60,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </h1>
           <p className="text-xl text-slate-600 mb-8 max-w-xl leading-relaxed">
             Majornomics provides transparent insights into employment rates, tuition costs, 
-            and graduate outcomes — empowering students, policymakers, and educators.
+            and graduate outcomes - empowering students, and educators.
           </p>
           <div className="flex gap-4">
             <Button 
