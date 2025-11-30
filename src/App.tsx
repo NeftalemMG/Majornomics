@@ -7,15 +7,16 @@ import { Recommendations } from "./components/Recommendations";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("home");
+  const [searchedWord, setSearchedWord] = useState("");
 
   const renderPage = () => {
     switch (currentPage) {
       case "home":
         return <HomePage onNavigate={setCurrentPage} />;
       case "search":
-        return <Search />;
+        return <Search searchedWord={searchedWord} setSearchedWord = {setSearchedWord} />;
       case "recommendations":
-        return <Recommendations />;
+        return <Recommendations searchedWord={searchedWord} setSearchedWord = {setSearchedWord} />;
       default:
         return <HomePage onNavigate={setCurrentPage} />;
     }

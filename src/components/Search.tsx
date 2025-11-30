@@ -10,7 +10,7 @@ import {
 } from "./icons/SketchyIcons";
 import axios, { all } from "axios";
 
-export function Search() {
+export function Search({ searchedWord,setSearchedWord} : { searchedWord: string; setSearchedWord: (val: string) => void }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState<University[]>([]);
   const [allResults, setAllResults] = useState<University[]>([]);
@@ -45,6 +45,11 @@ export function Search() {
   useEffect(() => {
     getAllCourses();
   }, []);
+
+  const handleSearchChange = (val: string) => {
+    setSearchedWord(val);
+    setSearchQuery(val);
+  }
   
 
   useEffect(() => {
@@ -77,7 +82,7 @@ export function Search() {
             type="text"
             placeholder="Search universities, programs, or degrees..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full px-6 py-6 text-lg rounded-2xl border-2 border-slate-200 focus:border-blue-500 transition-colors"
           />
         </div>
