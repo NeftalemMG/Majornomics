@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Input } from "./ui/input";
-import { 
-  SketchyCapIcon, 
-  SketchyMoneyIcon, 
+import {
+  SketchyCapIcon,
+  SketchyMoneyIcon,
   SketchyBadgeIcon,
   SketchyLocationIcon,
   SketchyTrendIcon,
@@ -14,12 +14,20 @@ interface BackendProgram {
   tuition: number;
   generalCosts: number;
   userRating: number;
-  averageSalaryExpectations: Array<{ averageSalary: number; careerStage: string }>;
+  averageSalaryExpectations: Array<{
+    averageSalary: number;
+    careerStage: string;
+  }>;
   admissionRequirements: Array<{ gpa: number }>;
   programDuration: string;
   numberOfSemesters: number;
   futureRoles: string[];
-  courses: Array<{ courseName: string; semester: number; credits: number; courseType: string }>;
+  courses: Array<{
+    courseName: string;
+    semester: number;
+    credits: number;
+    courseType: string;
+  }>;
   redditReviews: string[];
   universityName: string;
   location: string;
@@ -39,7 +47,12 @@ interface RecommendedProgram {
   duration: string;
   semesters: number;
   futureRoles: string[];
-  courses: Array<{ courseName: string; semester: number; credits: number; courseType: string }>;
+  courses: Array<{
+    courseName: string;
+    semester: number;
+    credits: number;
+    courseType: string;
+  }>;
   reviews: string[];
   userRating: number;
 }
@@ -51,13 +64,25 @@ interface SearchContext {
   timestamp: string;
 }
 
-export function Recommendations() {
-  const [selectedCriterion, setSelectedCriterion] = useState<"prestige" | "budget" | "rating">("rating");
-  const [recommendations, setRecommendations] = useState<RecommendedProgram[]>([]);
+export function Recommendations({
+  searchedWord,
+  setSearchedWord,
+}: {
+  searchedWord: string;
+  setSearchedWord: (val: string) => void;
+}) {
+  const [selectedCriterion, setSelectedCriterion] = useState<
+    "prestige" | "budget" | "rating"
+  >("rating");
+  const [recommendations, setRecommendations] = useState<RecommendedProgram[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchContext, setSearchContext] = useState<SearchContext | null>(null);
-  
+  const [searchContext, setSearchContext] = useState<SearchContext | null>(
+    null
+  );
+
   const [isEditingPreference, setIsEditingPreference] = useState(false);
   const [editedProgramName, setEditedProgramName] = useState("");
 
@@ -74,39 +99,50 @@ export function Recommendations() {
     }
   }, []);
 
-  const fetchRecommendations = async (sortBy: "prestige" | "budget" | "rating") => {
+  const fetchRecommendations = async (
+    sortBy: "prestige" | "budget" | "rating"
+  ) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:8000/api/recommendations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ sortBy }),
-      });
+      const response = await fetch(
+        "http://localhost:5000/api/recommendations",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sortBy,
+            query: searchedWord,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to fetch recommendations: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       let filteredPrograms = result.data;
-      
+
       if (searchContext) {
         filteredPrograms = result.data.filter((program: BackendProgram) => {
-          const programNameMatch = program.programName.toLowerCase().includes(
-            searchContext.programName.toLowerCase()
+          const programNameMatch = program.programName
+            .toLowerCase()
+            .includes(searchContext.programName.toLowerCase());
+          const degreeTypeMatch =
+            program.degreeType === searchContext.degreeType;
+
+          const keywords = searchContext.programName.toLowerCase().split(" ");
+          const hasKeywordMatch = keywords.some(
+            (keyword) =>
+              keyword.length > 3 &&
+              program.programName.toLowerCase().includes(keyword)
           );
-          const degreeTypeMatch = program.degreeType === searchContext.degreeType;
-          
-          const keywords = searchContext.programName.toLowerCase().split(' ');
-          const hasKeywordMatch = keywords.some(keyword => 
-            keyword.length > 3 && program.programName.toLowerCase().includes(keyword)
-          );
-          
+
           return programNameMatch || degreeTypeMatch || hasKeywordMatch;
         });
 
@@ -114,28 +150,32 @@ export function Recommendations() {
           filteredPrograms = result.data;
         }
       }
-      
-      const transformedPrograms: RecommendedProgram[] = filteredPrograms.map((program: BackendProgram) => ({
-        programName: program.programName,
-        degreeType: program.degreeType,
-        university: program.universityName,
-        location: program.location,
-        ranking: program.qsWorldRanking,
-        tuition: program.tuition,
-        generalCosts: program.generalCosts,
-        salary: program.averageSalaryExpectations[0]?.averageSalary || 0,
-        gpa: program.admissionRequirements[0]?.gpa || 0,
-        duration: program.programDuration,
-        semesters: program.numberOfSemesters,
-        futureRoles: program.futureRoles,
-        courses: program.courses,
-        reviews: program.redditReviews,
-        userRating: program.userRating,
-      }));
+
+      const transformedPrograms: RecommendedProgram[] = filteredPrograms.map(
+        (program: BackendProgram) => ({
+          programName: program.programName,
+          degreeType: program.degreeType,
+          university: program.universityName,
+          location: program.location,
+          ranking: program.qsWorldRanking,
+          tuition: program.tuition,
+          generalCosts: program.generalCosts,
+          salary: program.averageSalaryExpectations[0]?.averageSalary || 0,
+          gpa: program.admissionRequirements[0]?.gpa || 0,
+          duration: program.programDuration,
+          semesters: program.numberOfSemesters,
+          futureRoles: program.futureRoles,
+          courses: program.courses,
+          reviews: program.redditReviews,
+          userRating: program.userRating,
+        })
+      );
 
       setRecommendations(transformedPrograms.slice(0, 4));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load recommendations");
+      setError(
+        err instanceof Error ? err.message : "Failed to load recommendations"
+      );
       console.error("Error fetching recommendations:", err);
     } finally {
       setLoading(false);
@@ -150,7 +190,9 @@ export function Recommendations() {
   // FIXED: handleCriterionClick with console log for debugging
   // Lines 173-177
   // ============================================================
-  const handleCriterionClick = (criterion: "prestige" | "budget" | "rating") => {
+  const handleCriterionClick = (
+    criterion: "prestige" | "budget" | "rating"
+  ) => {
     console.log("Clicked:", criterion); // ← DEBUGGING
     console.log("Setting selectedCriterion to:", criterion); // ← DEBUGGING
     setSelectedCriterion(criterion);
@@ -185,10 +227,13 @@ export function Recommendations() {
     <div className="container mx-auto px-8 pb-20">
       {/* Header */}
       <div className="mb-12">
-        <h1 className="text-5xl mb-4 text-black tracking-tight" style={{ fontWeight: 700 }}>
-          Recommended Programs
+        <h1
+          className="text-5xl mb-4 text-black tracking-tight"
+          style={{ fontWeight: 700 }}
+        >
+          Recommended Programs for {searchedWord}
         </h1>
-        
+
         {/* ============================================================
             MODIFIED: Search Context Banner with Edit Button
             Lines 213-269
@@ -202,11 +247,12 @@ export function Recommendations() {
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                   <div>
                     <p className="text-slate-600">
-                      <span className="text-slate-500">Based on your search for:</span>{" "}
+                      <span className="text-slate-500">
+                        Based on your search for:
+                      </span>{" "}
                       <span className="text-black font-semibold">
                         {searchContext.programName}
-                      </span>
-                      {" "}
+                      </span>{" "}
                       <span className="text-slate-500">
                         ({searchContext.degreeType})
                       </span>
@@ -237,7 +283,10 @@ export function Recommendations() {
             ) : (
               // ← NEW: EDIT MODE: Show input to change preference
               <div className="p-6 bg-blue-50 border-2 border-blue-200 rounded-2xl">
-                <h3 className="text-lg text-black mb-4" style={{ fontWeight: 700 }}>
+                <h3
+                  className="text-lg text-black mb-4"
+                  style={{ fontWeight: 700 }}
+                >
                   Edit Your Preference
                 </h3>
                 <div className="flex items-center gap-4">
@@ -277,12 +326,11 @@ export function Recommendations() {
             )}
           </div>
         )}
-        
+
         <p className="text-xl text-slate-600 max-w-2xl mt-4">
-          {searchContext 
+          {searchContext
             ? "Recommendations tailored to your interests"
-            : "Select your priority to get personalized recommendations"
-          }
+            : "Select your priority to get personalized recommendations"}
         </p>
       </div>
 
@@ -291,12 +339,14 @@ export function Recommendations() {
           Lines 290-424
           ============================================================ */}
       <div className="mb-12">
-        <h2 className="text-2xl mb-6 text-black tracking-tight" style={{ fontWeight: 700 }}>
+        <h2
+          className="text-2xl mb-6 text-black tracking-tight"
+          style={{ fontWeight: 700 }}
+        >
           What matters most to you?
         </h2>
-        
+
         <div className="grid grid-cols-3 gap-6">
-          
           {/* ============================================================
               PRESTIGE CARD - FIXED with explicit conditions
               Lines 302-344
@@ -306,38 +356,52 @@ export function Recommendations() {
             type="button"
             style={{
               // ← INLINE STYLES for guaranteed application
-              border: selectedCriterion === "prestige" ? "4px solid #8b5cf6" : "4px solid #e2e8f0",
-              backgroundColor: selectedCriterion === "prestige" ? "#faf5ff" : "#ffffff",
-              transform: selectedCriterion === "prestige" ? "scale(1.05)" : "scale(1)",
-              boxShadow: selectedCriterion === "prestige" ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)" : "none",
+              border:
+                selectedCriterion === "prestige"
+                  ? "4px solid #8b5cf6"
+                  : "4px solid #e2e8f0",
+              backgroundColor:
+                selectedCriterion === "prestige" ? "#faf5ff" : "#ffffff",
+              transform:
+                selectedCriterion === "prestige" ? "scale(1.05)" : "scale(1)",
+              boxShadow:
+                selectedCriterion === "prestige"
+                  ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+                  : "none",
             }}
             className="p-8 rounded-3xl transition-all duration-300 text-left hover:shadow-lg"
           >
             <div className="flex items-center gap-3 mb-4">
-              <div 
+              <div
                 style={{
-                  backgroundColor: selectedCriterion === "prestige" ? "#8b5cf6" : "#e9d5ff",
+                  backgroundColor:
+                    selectedCriterion === "prestige" ? "#8b5cf6" : "#e9d5ff",
                 }}
                 className="p-3 rounded-2xl"
               >
-                <SketchyBadgeIcon 
+                <SketchyBadgeIcon
                   style={{
-                    color: selectedCriterion === "prestige" ? "#ffffff" : "#8b5cf6",
+                    color:
+                      selectedCriterion === "prestige" ? "#ffffff" : "#8b5cf6",
                   }}
-                  className="w-8 h-8" 
+                  className="w-8 h-8"
                 />
               </div>
               <h3 className="text-2xl text-black" style={{ fontWeight: 700 }}>
                 Prestige
               </h3>
             </div>
-            
+
             <p className="text-slate-600 text-base mb-4">
-              Prioritize universities with the best QS world rankings and academic reputation.
+              Prioritize universities with the best QS world rankings and
+              academic reputation.
             </p>
-            
+
             {selectedCriterion === "prestige" && (
-              <div className="flex items-center gap-2 text-purple-600" style={{ fontWeight: 600 }}>
+              <div
+                className="flex items-center gap-2 text-purple-600"
+                style={{ fontWeight: 600 }}
+              >
                 <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"></div>
                 Selected
               </div>
@@ -353,38 +417,51 @@ export function Recommendations() {
             type="button"
             style={{
               // ← INLINE STYLES for guaranteed application
-              border: selectedCriterion === "budget" ? "4px solid #22c55e" : "4px solid #e2e8f0",
-              backgroundColor: selectedCriterion === "budget" ? "#f0fdf4" : "#ffffff",
-              transform: selectedCriterion === "budget" ? "scale(1.05)" : "scale(1)",
-              boxShadow: selectedCriterion === "budget" ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)" : "none",
+              border:
+                selectedCriterion === "budget"
+                  ? "4px solid #22c55e"
+                  : "4px solid #e2e8f0",
+              backgroundColor:
+                selectedCriterion === "budget" ? "#f0fdf4" : "#ffffff",
+              transform:
+                selectedCriterion === "budget" ? "scale(1.05)" : "scale(1)",
+              boxShadow:
+                selectedCriterion === "budget"
+                  ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+                  : "none",
             }}
             className="p-8 rounded-3xl transition-all duration-300 text-left hover:shadow-lg"
           >
             <div className="flex items-center gap-3 mb-4">
-              <div 
+              <div
                 style={{
-                  backgroundColor: selectedCriterion === "budget" ? "#22c55e" : "#dcfce7",
+                  backgroundColor:
+                    selectedCriterion === "budget" ? "#22c55e" : "#dcfce7",
                 }}
                 className="p-3 rounded-2xl"
               >
-                <SketchyMoneyIcon 
+                <SketchyMoneyIcon
                   style={{
-                    color: selectedCriterion === "budget" ? "#ffffff" : "#22c55e",
+                    color:
+                      selectedCriterion === "budget" ? "#ffffff" : "#22c55e",
                   }}
-                  className="w-8 h-8" 
+                  className="w-8 h-8"
                 />
               </div>
               <h3 className="text-2xl text-black" style={{ fontWeight: 700 }}>
                 Budget
               </h3>
             </div>
-            
+
             <p className="text-slate-600 text-base mb-4">
               Find the most affordable programs with the lowest tuition costs.
             </p>
-            
+
             {selectedCriterion === "budget" && (
-              <div className="flex items-center gap-2 text-green-600" style={{ fontWeight: 600 }}>
+              <div
+                className="flex items-center gap-2 text-green-600"
+                style={{ fontWeight: 600 }}
+              >
                 <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
                 Selected
               </div>
@@ -400,38 +477,51 @@ export function Recommendations() {
             type="button"
             style={{
               // ← INLINE STYLES for guaranteed application
-              border: selectedCriterion === "rating" ? "4px solid #3b82f6" : "4px solid #e2e8f0",
-              backgroundColor: selectedCriterion === "rating" ? "#eff6ff" : "#ffffff",
-              transform: selectedCriterion === "rating" ? "scale(1.05)" : "scale(1)",
-              boxShadow: selectedCriterion === "rating" ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)" : "none",
+              border:
+                selectedCriterion === "rating"
+                  ? "4px solid #3b82f6"
+                  : "4px solid #e2e8f0",
+              backgroundColor:
+                selectedCriterion === "rating" ? "#eff6ff" : "#ffffff",
+              transform:
+                selectedCriterion === "rating" ? "scale(1.05)" : "scale(1)",
+              boxShadow:
+                selectedCriterion === "rating"
+                  ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+                  : "none",
             }}
             className="p-8 rounded-3xl transition-all duration-300 text-left hover:shadow-lg"
           >
             <div className="flex items-center gap-3 mb-4">
-              <div 
+              <div
                 style={{
-                  backgroundColor: selectedCriterion === "rating" ? "#3b82f6" : "#dbeafe",
+                  backgroundColor:
+                    selectedCriterion === "rating" ? "#3b82f6" : "#dbeafe",
                 }}
                 className="p-3 rounded-2xl"
               >
-                <SketchyCapIcon 
+                <SketchyCapIcon
                   style={{
-                    color: selectedCriterion === "rating" ? "#ffffff" : "#3b82f6",
+                    color:
+                      selectedCriterion === "rating" ? "#ffffff" : "#3b82f6",
                   }}
-                  className="w-8 h-8" 
+                  className="w-8 h-8"
                 />
               </div>
               <h3 className="text-2xl text-black" style={{ fontWeight: 700 }}>
                 Ratings
               </h3>
             </div>
-            
+
             <p className="text-slate-600 text-base mb-4">
               Choose programs with the highest student satisfaction and reviews.
             </p>
-            
+
             {selectedCriterion === "rating" && (
-              <div className="flex items-center gap-2 text-blue-600" style={{ fontWeight: 600 }}>
+              <div
+                className="flex items-center gap-2 text-blue-600"
+                style={{ fontWeight: 600 }}
+              >
                 <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
                 Selected
               </div>
@@ -464,21 +554,34 @@ export function Recommendations() {
       {!loading && !error && recommendations.length > 0 && (
         <div className="grid grid-cols-2 gap-8">
           {recommendations.map((program, idx) => (
-            <div key={idx} className="creative-card rounded-3xl p-8 hover:shadow-xl transition-all duration-300">
+            <div
+              key={idx}
+              className="creative-card rounded-3xl p-8 hover:shadow-xl transition-all duration-300"
+            >
               <div className="flex items-start justify-between mb-6 pb-4 border-b border-slate-100">
                 <div className="flex-1">
-                  <h3 className="text-2xl text-black mb-2 tracking-tight" style={{ fontWeight: 700 }}>
+                  <h3
+                    className="text-2xl text-black mb-2 tracking-tight"
+                    style={{ fontWeight: 700 }}
+                  >
                     {program.programName}
                   </h3>
-                  <p className="text-lg text-slate-600 mb-2">{program.university}</p>
+                  <p className="text-lg text-slate-600 mb-2">
+                    {program.university}
+                  </p>
                   <div className="flex items-center gap-3">
-                    <div className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm" style={{ fontWeight: 600 }}>
+                    <div
+                      className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm"
+                      style={{ fontWeight: 600 }}
+                    >
                       {program.degreeType}
                     </div>
-                    <span className="text-sm text-slate-500">{program.duration}</span>
+                    <span className="text-sm text-slate-500">
+                      {program.duration}
+                    </span>
                   </div>
                 </div>
-                
+
                 <div className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-full">
                   <span className="text-sm" style={{ fontWeight: 700 }}>
                     ⭐ {program.userRating}/10
@@ -551,10 +654,18 @@ export function Recommendations() {
 
               {/* Career Paths */}
               <div className="mb-4">
-                <h5 className="text-sm text-slate-500 mb-2" style={{ fontWeight: 600 }}>Career Paths</h5>
+                <h5
+                  className="text-sm text-slate-500 mb-2"
+                  style={{ fontWeight: 600 }}
+                >
+                  Career Paths
+                </h5>
                 <div className="flex flex-wrap gap-2">
                   {program.futureRoles.map((role, rIdx) => (
-                    <span key={rIdx} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs">
+                    <span
+                      key={rIdx}
+                      className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs"
+                    >
                       {role}
                     </span>
                   ))}
@@ -563,10 +674,18 @@ export function Recommendations() {
 
               {/* Courses */}
               <div className="mb-4">
-                <h5 className="text-sm text-slate-500 mb-2" style={{ fontWeight: 600 }}>Sample Courses</h5>
+                <h5
+                  className="text-sm text-slate-500 mb-2"
+                  style={{ fontWeight: 600 }}
+                >
+                  Sample Courses
+                </h5>
                 <div className="space-y-1.5">
                   {program.courses.slice(0, 3).map((course, cIdx) => (
-                    <div key={cIdx} className="text-sm text-slate-600 leading-relaxed">
+                    <div
+                      key={cIdx}
+                      className="text-sm text-slate-600 leading-relaxed"
+                    >
                       • {course.courseName} ({course.courseType})
                     </div>
                   ))}
@@ -580,7 +699,12 @@ export function Recommendations() {
 
               {/* Reviews */}
               <div>
-                <h5 className="text-sm text-slate-500 mb-2" style={{ fontWeight: 600 }}>Student Reviews</h5>
+                <h5
+                  className="text-sm text-slate-500 mb-2"
+                  style={{ fontWeight: 600 }}
+                >
+                  Student Reviews
+                </h5>
                 <div className="space-y-2">
                   {program.reviews.map((review, revIdx) => (
                     <div key={revIdx} className="p-2 bg-slate-50 rounded-lg">
