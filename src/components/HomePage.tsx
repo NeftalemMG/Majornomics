@@ -16,25 +16,25 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const stats = [
     {
       icon: SketchyPeopleIcon,
-      value: '200',
-      label: 'Programs Analyzed',
+      value: '8+ Metrics',
+      label: 'Compared Per Program',
       delay: '0ms',
     },
     {
       icon: SketchyTrendIcon,
-      value: '98%',
-      label: 'Accuracy Rate - This i might also remove',
+      value: '4 Data Layers',
+      label: 'Cost, Salary, Roles, Reviews',
       delay: '100ms',
     },
     {
       icon: SketchyMoneyIcon,
-      value: '$75K',
-      label: 'Avg Graduate Salary - Not sure about the data here we might have to change it after we pool in the actual data',
+      value: 'Multiple Areas of Study',
+      label: 'CS, MBA, MPH, MME, BioTech, & more',
       delay: '200ms',
     },
     {
       icon: SketchyLocationIcon,
-      value: '20',
+      value: '15',
       label: 'Institutions Tracked',
       delay: '300ms',
     },
@@ -64,7 +64,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </p>
           <div className="flex gap-4">
             <Button 
-              onClick={() => onNavigate('dashboard')}
+              onClick={() => onNavigate('search')}
               className="bg-blue-500 text-white px-8 py-6 rounded-2xl hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 hover:-translate-y-0.5 group"
               style={{ fontWeight: 600 }}
             >

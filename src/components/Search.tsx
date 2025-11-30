@@ -18,7 +18,7 @@ export function Search({ searchedWord,setSearchedWord} : { searchedWord: string;
   const getAllCourses = async () => {
     try {
       const allUnis = await axios.get<getAllUnisResponse>(
-        "http://localhost:5000/api/unis/all"
+        "http://localhost:8000/api/unis/all"
       );
       setFilteredResults(allUnis.data.data);
       setAllResults(allUnis.data.data);
@@ -30,7 +30,7 @@ export function Search({ searchedWord,setSearchedWord} : { searchedWord: string;
   const fetchSearchedResults = async (query: string) => {
     try {
       const response = await axios.post<getAllUnisResponse>(
-        "http://localhost:5000/api/unis/search",
+        "http://localhost:8000/api/unis/search",
         {
           query: query,
         }
@@ -135,7 +135,7 @@ export function Search({ searchedWord,setSearchedWord} : { searchedWord: string;
               {/* Programs */}
               <div className="space-y-6">
                 {university.programsOffered.map((program, pIdx) => (
-                  <div key={pIdx} className="space-y-4">
+                  <div key={pIdx} className="space-y-4" style={{margin: 40}}>
                     <div className="creative-card-accent rounded-2xl p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
