@@ -107,7 +107,7 @@ export function Recommendations({
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/recommendations",
+        "http://localhost:8000/api/recommendations",
         {
           method: "POST",
           headers: {
@@ -171,7 +171,8 @@ export function Recommendations({
         })
       );
 
-      setRecommendations(transformedPrograms.slice(0, 4));
+      // setRecommendations(transformedPrograms.slice(0, 4));
+      setRecommendations(transformedPrograms);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to load recommendations"
