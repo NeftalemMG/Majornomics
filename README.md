@@ -28,16 +28,16 @@ The application is built with React and TypeScript. It interacts with the backen
 ## Running the Project
 
 Install dependencies:
-npm install
+**npm install**
 
 Start development server:
-npm run dev
+**npm run dev**
 
 Build for production:
-npm run build
+**npm run build**
 
 Preview production build:
-npm run preview
+**npm run preview**
 
 ---
 
@@ -45,12 +45,7 @@ npm run preview
 
 Create a `.env` file with:
 
-MONGO_URI = <Mongo DB URI>
-
-yaml
-Copy code
-
-Used for all API requests.
+MONGO_URI = <"Mongo DB URI">
 
 ---
 
@@ -64,9 +59,12 @@ The frontend communicates with the backend via REST endpoints for:
 
 Requests are made through standard HTTP endpoints exposed by the backend.
 
+- The backend repo can be found here: https://github.com/Ujk768/ase-backend.git
+
 ---
 
 ## Notes
 
 - All actual data should come from the backend unless running in offline mode using `dummydata.ts`.
+
 
