@@ -41,14 +41,6 @@ Preview production build:
 
 ---
 
-## Environment Variables
-
-Create a `.env` file with:
-
-MONGO_URI = <"Mongo DB URI">
-
----
-
 ## Frontend–Backend Interaction
 
 The frontend communicates with the backend via REST endpoints for:
