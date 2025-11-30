@@ -1,6 +1,6 @@
 # Majornomics Frontend
 
-Majornomics platform is a web-based interface for exploring postsecondary programs, comparing outcomes, and visualizing data related to tuition costs, job prospects, and program trends (Canadian Universities Only for now).
+Majornomics is a web-based interface for exploring postsecondary programs, comparing outcomes, and visualizing data related to tuition costs, job prospects, and program trends (Focusing on Canadian Universities Only for now).
 
 The application is built with React and TypeScript. It interacts with the backend API to retrieve program data, institutional information, and recommendations.
 
@@ -20,24 +20,42 @@ The application is built with React and TypeScript. It interacts with the backen
 
 src/
 │── App.tsx # Root component
+
 │── main.tsx # Application entry point
+
 │── index.css
+
 │── styles/globals.css
+
 │
 ├── components/
+
 │ ├── Header.tsx
+
 │ ├── Footer.tsx
+
 │ ├── HomePage.tsx
+
 │ ├── Search.tsx
+
 │ ├── Recommendations.tsx
+
 │ ├── Dashboard.tsx
+
 │ ├── GlassCard.tsx
+
 │ ├── figma/ImageWithFallback.tsx
+
 │ ├── icons/
+
 │ │ ├── CustomIcons.tsx
+
 │ │ └── SketchyIcons.tsx
+
 │ └── ui/ # Reusable UI primitives (shadcn components)
+
 │
+
 ├── dummydata.ts # Temporary static data
 
 
